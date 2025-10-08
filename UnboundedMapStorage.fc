@@ -1,0 +1,24 @@
+;; Wrong example: creates a new dictionary entry for every caller and never deletes old data
+
+() recv_internal(cell in_msg_body, slice in_msg) impure {
+    ;; Load persistent storage
+    var ds = get_data().begin_parse();
+    var users = ds~load_dict();
+
+    ;; Get caller address and hash it as the key
+    var sender = in_msg~load_msg_addr();
+    var key = slice_hash(sender);
+
+    ;; Build random payload (simulate user data)
+    var payload = begin_cell()
+        .store_uint(rand(1000000), 32)
+        .end_cell();
+
+    ;; Add entry to dictionary (key = caller)
+    users~udict_set_ref(256, key, payload);
+
+    ;; Save back to storage
+    set_data(begin_cell()
+        .store_dict(users)
+        .end_cell());
+}
